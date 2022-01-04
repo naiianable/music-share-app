@@ -1,10 +1,13 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App";
+import { ThemeProvider, CssBaseline } from "@mui/material";
+import theme from "./theme";
 
 ReactDOM.render(
-	<React.StrictMode>
+	<ThemeProvider theme={theme}>
+		<CssBaseline />
 		<App />
-	</React.StrictMode>,
+	</ThemeProvider>,
 	document.getElementById("root")
 );
