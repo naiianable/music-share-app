@@ -9,17 +9,25 @@ import {
 	Typography,
 	IconButton,
 } from "@mui/material";
-import React, { Component } from "react";
+import React from "react";
+import { useSubscription } from "@apollo/client";
+import { GET_SONGS } from "../graphql/subscriptions";
 
 const SongList = () => {
-	let loading = false;
+	//useSubscription is to update page instantly without sending additional request.  different from useQuery
+	//*** see client.js for setup
+	const { data, loading, error } = useSubscription(GET_SONGS);
 
-	const song = {
-		title: "Tattoos Together",
-		artist: "Lauv",
-		thumbnail:
-			"https://i.ytimg.com/an_webp/j9DnUII28fI/mqdefault_6s.webp?du=3000&sqp=CNra044G&rs=AOn4CLBhB_Q2D-UC69iiCRWx08vBbFn28g",
-	};
+	// console.log("THIS IS DATA", data);
+	// console.log("THIS IS LOADING", loading);
+	// console.log("THIS IS ERROR", error);
+
+	// const song = {
+	// 	title: "Tattoos Together",
+	// 	artist: "Lauv",
+	// 	thumbnail:
+	// 		"https://i.ytimg.com/an_webp/j9DnUII28fI/mqdefault_6s.webp?du=3000&sqp=CNra044G&rs=AOn4CLBhB_Q2D-UC69iiCRWx08vBbFn28g",
+	// };
 
 	if (loading) {
 		return (
@@ -35,13 +43,16 @@ const SongList = () => {
 			</div>
 		);
 	}
+
+	if (error) return <div>Error Fetching Songs</div>;
+
 	return (
 		<div>
 			{/* Array.from: first arg is the length of array returned, sec arg is a .map that maps through object */}
 			{/* Second .map get each song and its index and returning a new component from that */}
-			{Array.from({ length: 10 }, () => song).map((song, i) => (
+			{data.songs.map((song) => (
 				// Passing song from func below as Component, able to destructure song in function to access title, artist, thumbnail
-				<Song key={i} song={song} />
+				<Song key={song.id} song={song} />
 			))}
 		</div>
 	);
