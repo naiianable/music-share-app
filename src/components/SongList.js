@@ -10,9 +10,10 @@ import {
 	IconButton,
 } from "@mui/material";
 import React, { useContext, useEffect, useState } from "react";
-import { useSubscription } from "@apollo/client";
+import { useMutation, useSubscription } from "@apollo/client";
 import { GET_SONGS } from "../graphql/subscriptions";
 import { SongContext } from "../App";
+import { ADD_OR_REMOVE_FROM_QUEUE } from "../graphql/mutations";
 
 const SongList = () => {
 	//useSubscription is to update page instantly without sending additional request.  different from useQuery
@@ -85,6 +86,16 @@ function Song({ song }) {
 	const [currentSongPlaying, setCurrentSongPlaying] = useState(false);
 	const { artist, thumbnail, title } = song;
 	const classes = useStyles();
+	//usemutation second parameter onCompleted callback. returns data from executed mutation
+	const [addOrRemoveFromQueue] = useMutation(ADD_OR_REMOVE_FROM_QUEUE, {
+		onCompleted: (data) => {
+			//returning data and setting it in local storage from client.js mutation type and resolvers
+			localStorage.setItem(
+				"queue",
+				JSON.stringify(data.addOrRemoveFromQueue)
+			);
+		},
+	});
 
 	useEffect(() => {
 		const isSongPlaying = state.isPlaying && id === state.song.id;
@@ -97,6 +108,14 @@ function Song({ song }) {
 		dispatch(
 			state.isPlaying ? { type: "PAUSE_SONG" } : { type: "PLAY_SONG" }
 		);
+	}
+
+	function handleAddOrRemoveFromQueue() {
+		addOrRemoveFromQueue({
+			//__typename is just the name of thing we're working with
+			//where data is provided to input in client in order to change
+			variables: { input: { ...song, __typename: "Song" } },
+		});
 	}
 
 	return (
@@ -124,7 +143,11 @@ function Song({ song }) {
 						>
 							{currentSongPlaying ? <Pause /> : <PlayArrow />}
 						</IconButton>
-						<IconButton size="small" color="secondary">
+						<IconButton
+							onClick={handleAddOrRemoveFromQueue}
+							size="small"
+							color="secondary"
+						>
 							<Save />
 						</IconButton>
 					</CardActions>

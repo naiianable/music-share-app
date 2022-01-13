@@ -11,6 +11,8 @@ import {
 import QueuedSongList from "./QueuedSongList";
 import { PlayArrow, SkipNext, SkipPrevious, Pause } from "@mui/icons-material";
 import { SongContext } from "../App";
+import { useQuery } from "@apollo/client";
+import { GET_QUEUED_SONGS } from "../graphql/queries";
 
 const useStyles = makeStyles((theme) => ({
 	container: {
@@ -41,6 +43,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const SongPlayer = () => {
+	const { data } = useQuery(GET_QUEUED_SONGS);
 	//bringing in hard coded song from app.js. setting data to "state" and using it to update jsx in player
 	const { state, dispatch } = useContext(SongContext);
 	const classes = useStyles();
@@ -98,7 +101,7 @@ const SongPlayer = () => {
 					image={state.song.thumbnail}
 				/>
 			</Card>
-			<QueuedSongList />
+			<QueuedSongList queue={data.queue} />
 		</>
 	);
 };
