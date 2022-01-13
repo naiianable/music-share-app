@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import { makeStyles } from "@mui/styles";
 import {
 	Card,
@@ -9,7 +9,8 @@ import {
 	Typography,
 } from "@mui/material";
 import QueuedSongList from "./QueuedSongList";
-import { PlayArrow, SkipNext, SkipPrevious } from "@mui/icons-material";
+import { PlayArrow, SkipNext, SkipPrevious, Pause } from "@mui/icons-material";
+import { SongContext } from "../App";
 
 const useStyles = makeStyles((theme) => ({
 	container: {
@@ -40,7 +41,17 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const SongPlayer = () => {
+	//bringing in hard coded song from app.js. setting data to "state" and using it to update jsx in player
+	const { state, dispatch } = useContext(SongContext);
 	const classes = useStyles();
+
+	function handleTogglePlay() {
+		dispatch(
+			//create/dispatch new action types used by reducer
+			//action is dispatched(clicking play/pause button), reducer runs, state is updated in SongPlayer, isPlaying is updated in this case
+			state.isPlaying ? { type: "PAUSE_SONG" } : { type: "PLAY_SONG" }
+		);
+	}
 
 	return (
 		<>
@@ -48,22 +59,26 @@ const SongPlayer = () => {
 				<div className={classes.details}>
 					<CardContent className={classes.content}>
 						<Typography variant="h5" component="h3">
-							Title
+							{state.song.title}
 						</Typography>
 						<Typography
 							variant="subtitle1"
 							component="p"
 							color="textSecondary"
 						>
-							Artist
+							{state.song.artist}
 						</Typography>
 					</CardContent>
 					<div className={classes.controls}>
 						<IconButton>
 							<SkipPrevious />
 						</IconButton>
-						<IconButton>
-							<PlayArrow className={classes.playIcon} />
+						<IconButton onClick={handleTogglePlay}>
+							{state.isPlaying ? (
+								<Pause className={classes.playIcon} />
+							) : (
+								<PlayArrow className={classes.playIcon} />
+							)}
 						</IconButton>
 						<IconButton>
 							<SkipNext />
@@ -80,7 +95,7 @@ const SongPlayer = () => {
 				</div>
 				<CardMedia
 					className={classes.thumbnail}
-					image="https://i.ytimg.com/an_webp/j9DnUII28fI/mqdefault_6s.webp?du=3000&sqp=CNra044G&rs=AOn4CLBhB_Q2D-UC69iiCRWx08vBbFn28g"
+					image={state.song.thumbnail}
 				/>
 			</Card>
 			<QueuedSongList />
