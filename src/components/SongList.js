@@ -1,4 +1,4 @@
-import { PlayArrow, Save } from "@mui/icons-material";
+import { Pause, PlayArrow, Save } from "@mui/icons-material";
 import { makeStyles } from "@mui/styles";
 import {
 	CircularProgress,
@@ -9,9 +9,10 @@ import {
 	Typography,
 	IconButton,
 } from "@mui/material";
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useSubscription } from "@apollo/client";
 import { GET_SONGS } from "../graphql/subscriptions";
+import { SongContext } from "../App";
 
 const SongList = () => {
 	//useSubscription is to update page instantly without sending additional request.  different from useQuery
@@ -79,8 +80,24 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function Song({ song }) {
+	const { id } = song;
+	const { state, dispatch } = useContext(SongContext);
+	const [currentSongPlaying, setCurrentSongPlaying] = useState(false);
 	const { artist, thumbnail, title } = song;
 	const classes = useStyles();
+
+	useEffect(() => {
+		const isSongPlaying = state.isPlaying && id === state.song.id;
+		setCurrentSongPlaying(isSongPlaying);
+	}, [id, state.song.id, state.isPlaying]);
+
+	function handleTogglePlay() {
+		//payload is used in reducer, assigning the song as action.payload.song
+		dispatch({ type: "SET_SONG", payload: { song } });
+		dispatch(
+			state.isPlaying ? { type: "PAUSE_SONG" } : { type: "PLAY_SONG" }
+		);
+	}
 
 	return (
 		<Card className={classes.container}>
@@ -100,8 +117,12 @@ function Song({ song }) {
 						</Typography>
 					</CardContent>
 					<CardActions>
-						<IconButton size="small" color="primary">
-							<PlayArrow />
+						<IconButton
+							onClick={handleTogglePlay}
+							size="small"
+							color="primary"
+						>
+							{currentSongPlaying ? <Pause /> : <PlayArrow />}
 						</IconButton>
 						<IconButton size="small" color="secondary">
 							<Save />

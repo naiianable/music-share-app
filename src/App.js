@@ -4,6 +4,7 @@ import AddSong from "./components/AddSong";
 import SongList from "./components/SongList";
 import SongPlayer from "./components/SongPlayer";
 import { Grid, useMediaQuery, Hidden } from "@mui/material";
+import songReducer from "./reducer";
 
 export const SongContext = createContext({
 	song: {
@@ -19,7 +20,7 @@ export const SongContext = createContext({
 
 function App() {
 	const initialSongState = useContext(SongContext);
-	const [state, dispatch] = useReducer(() => {}, initialSongState);
+	const [state, dispatch] = useReducer(songReducer, initialSongState);
 	//see queuedsonglist for ex
 	const greaterThanSm = useMediaQuery((theme) => theme.breakpoints.up("sm"));
 	const greaterThanMd = useMediaQuery((theme) => theme.breakpoints.up("md"));
