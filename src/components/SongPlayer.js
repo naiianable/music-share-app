@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useState, useContext, useRef } from "react";
 import { makeStyles } from "@mui/styles";
 import {
 	Card,
@@ -13,6 +13,7 @@ import { PlayArrow, SkipNext, SkipPrevious, Pause } from "@mui/icons-material";
 import { SongContext } from "../App";
 import { useQuery } from "@apollo/client";
 import { GET_QUEUED_SONGS } from "../graphql/queries";
+import ReactPlayer from "react-player";
 
 const useStyles = makeStyles((theme) => ({
 	container: {
@@ -43,6 +44,10 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const SongPlayer = () => {
+	const reactPlayerRef = useRef();
+	//setting state for slider in player
+	const [played, setPlayed] = useState(0);
+	const [seeking, setSeeking] = useState(false);
 	const { data } = useQuery(GET_QUEUED_SONGS);
 	//bringing in hard coded song from app.js. setting data to "state" and using it to update jsx in player
 	const { state, dispatch } = useContext(SongContext);
@@ -54,6 +59,24 @@ const SongPlayer = () => {
 			//action is dispatched(clicking play/pause button), reducer runs, state is updated in SongPlayer, isPlaying is updated in this case
 			state.isPlaying ? { type: "PAUSE_SONG" } : { type: "PLAY_SONG" }
 		);
+	}
+
+	function handleProgressChange(e, newValue) {
+		//adjusting position of slider when moved manually by updating state
+		setPlayed(newValue);
+	}
+
+	//allows user to move slider
+	function handleSeekMouseDown() {
+		setSeeking(true);
+	}
+
+	//sets slider after moving
+	function handleSeekMouseUp() {
+		setSeeking(false);
+		//reactPlayerRef.current accesses current value
+		//seekTo built in method
+		reactPlayerRef.current.seekTo(played);
 	}
 
 	return (
@@ -94,8 +117,30 @@ const SongPlayer = () => {
 							00:01:30
 						</Typography>
 					</div>
-					<Slider type="range" min={0} max={1} step={0.01} />
+					<Slider
+						// updating played using state and setting to value so slider updates as well
+						value={played}
+						onChange={handleProgressChange}
+						onMouseDown={handleSeekMouseDown}
+						onMouseUp={handleSeekMouseUp}
+						type="range"
+						min={0}
+						max={1}
+						step={0.01}
+					/>
 				</div>
+				{/* component to make song play */}
+				<ReactPlayer
+					ref={reactPlayerRef}
+					onProgress={({ played, playedSeconds }) => {
+						if (!seeking) {
+							setPlayed(played);
+						}
+					}}
+					url={state.song.url}
+					playing={state.isPlaying}
+					hidden
+				/>
 				<CardMedia
 					className={classes.thumbnail}
 					image={state.song.thumbnail}
